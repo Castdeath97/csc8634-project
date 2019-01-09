@@ -1,3 +1,5 @@
 [
-  "tests/test_DataPreparation.py::TestGPUCleaning::()::test_serial_drop"
+  "tests/test_DataPreparation.py::TestGPUCleaning::()::test_serial_drop",
+  "tests/test_DataPreparation.py::TestCheckTaskMerge::()::test_check_col_count",
+  "tests/test_DataPreparation.py::TestCheckTaskMerge::()::test_check_keys"
 ]

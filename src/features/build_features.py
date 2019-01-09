@@ -23,7 +23,7 @@ tasks_df = pd.read_csv('data/raw/task-x-y.csv')
 pandas.core.frame.DataFrame: Task dataframe for executing task 
 """
 
-def naPer(df):
+def na_per(df):
     """Prints percentage of na values
     
     Parameters
@@ -41,7 +41,7 @@ def naPer(df):
     print("The dataframe has: ", 
           round(((totalNa/cellCount) * 100), 2), "%", "NAs")
 
-def cleanGPU(gpu_df):
+def clean_gpu(gpu_df):
     """Clean gpu dataset by dropping uneeded serial number
     
     Parameters
@@ -58,7 +58,7 @@ def cleanGPU(gpu_df):
     gpu_df.drop(columns='gpuSerial', inplace=True)
     return(gpu_df)
 
-def mergeCheckTask(checkpoints_df, tasks_df):
+def merge_check_task(checkpoints_df, tasks_df):
     """merge checkpoints with task df through job and task id
     
     Parameters
@@ -75,16 +75,22 @@ def mergeCheckTask(checkpoints_df, tasks_df):
     print(type(checkpoints_df))
     print(type(tasks_df))
 
-    merged_df = pd.merge(checkpoints_df, tasks_df,  how='left',
-                         left_on=['jobId','jobId'],
-                         right_on = ['taskId','taskId'])
+    merged_df = checkpoints_df.merge(tasks_df,
+                                     on=['taskId', 'jobId'], how='left')
     return (merged_df)
     
-def mergeCheckTaskGPU(merged_df, gpu_df):
+def merge_check_task_gpu(merged_df, gpu_df):
     return(merged_df)
     
-naPer(gpu_df)
-naPer(checkpoints_df)
-naPer(tasks_df)
+na_per(gpu_df)
+na_per(checkpoints_df)
+na_per(tasks_df)
 
-print(checkpoints_df.shape)
+print(gpu_df.shape)
+gpu_df = clean_gpu(gpu_df)
+print(gpu_df.shape)
+
+merged_df = merge_check_task(checkpoints_df, tasks_df)
+print(merged_df.shape)
+print(merged_df.columns)
+na_per(merged_df)

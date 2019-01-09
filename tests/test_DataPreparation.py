@@ -23,7 +23,7 @@ tasks_df = pd.read_csv('data/raw/task-x-y.csv')
 pandas.core.frame.DataFrame: Task dataframe for executing task 
 """
 
-merged_df = bf.mergeCheckTask(checkpoints_df, tasks_df) 
+merged_df = bf.merge_check_task(checkpoints_df, tasks_df) 
 """
 pandas.core.frame.DataFrame: Checkpoint and Task merged dataframe
 """
@@ -84,11 +84,11 @@ class TestGPUCleaning(object):
         """ Tests if serial id was removed
 
         """
-        gpu_df = bf.cleanGPU(global_gpu)
+        gpu_df = bf.clean_gpu(global_gpu)
         assert not('gpuSerial' in gpu_df.columns)
 
 @pytest.mark.usefixtures('global_merged')
-class testCheckTaskMerge(object):
+class TestCheckTaskMerge(object):
     """ Tests task and application checkpoints merge
 
     """
@@ -97,11 +97,12 @@ class testCheckTaskMerge(object):
         """ Tests if merge has correct number of columns
 
         """
-        assert (global_merged.columns == 9)
+        assert (len(global_merged.columns) == 9)
     
 
     def test_check_keys(self, global_merged):             
          """ Tests if keys task and job id are present
 
          """
-         assert (['taskId', 'jobId'] in global_merged.columns)
+         cols = ['taskId', 'jobId']
+         assert (global_merged.columns.isin(cols).any())
