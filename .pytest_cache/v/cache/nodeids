@@ -2,5 +2,7 @@
   "tests/test_DataPreparation.py::TestGPUCleaning::()::test_serial_drop",
   "tests/test_DataPreparation.py::TestCheckTaskMerge::()::test_check_col_count",
   "tests/test_DataPreparation.py::TestCheckTaskMerge::()::test_check_keys",
-  "tests/test_DataPreparation.py::TestCheckTaskCleaning::()::test_Id_drop"
+  "tests/test_DataPreparation.py::TestCheckTaskCleaning::()::test_Id_drop",
+  "tests/test_DataPreparation.py::TestCheckTaskGPUMerge::()::test_check_col_count",
+  "tests/test_DataPreparation.py::TestCheckTaskGPUMerge::()::test_check_keys"
 ]

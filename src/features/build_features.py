@@ -42,7 +42,7 @@ def na_per(df):
           round(((totalNa/cellCount) * 100), 2), "%", "NAs")
 
 def clean_gpu(gpu_df):
-    """Clean gpu dataset by dropping uneeded serial number
+    """Clean gpu dataframe by dropping uneeded serial number
     
     Parameters
     ----------
@@ -63,8 +63,11 @@ def merge_check_task(checkpoints_df, tasks_df):
     
     Parameters
     ----------
-    gpu_df
-        gpu dataframe to clean
+    checkpoints_df
+        application checkpoints dataframe to merge
+    
+    tasks_df
+        tasks dataframe to merge
 
     Returns
     -------
@@ -95,8 +98,26 @@ def clean_check_task(check_task_df):
     return(check_task_df)
     
 def merge_check_task_gpu(check_task_df, gpu_df):
+    """merge checkpoints and task df with gpu df through hostname and timestamp
+    
+    Parameters
+    ----------
+    check_task_df
+        application checkpoints and tasks megred dataframe to merge with gpu df
+    
+    gpu_df
+        gpu dataframe to merge
 
-    return(check_task_df)
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+        Cleaned GPU dataframe
+
+    """   
+
+    check_task_gpu_df = check_task_df.merge(gpu_df,
+                                     on=['hostname', 'timestamp'], how='left')
+    return(check_task_gpu_df)
     
 na_per(gpu_df)
 na_per(checkpoints_df)
