@@ -72,15 +72,31 @@ def merge_check_task(checkpoints_df, tasks_df):
         Cleaned GPU dataframe
 
     """   
-    print(type(checkpoints_df))
-    print(type(tasks_df))
 
-    merged_df = checkpoints_df.merge(tasks_df,
+    check_task_df = checkpoints_df.merge(tasks_df,
                                      on=['taskId', 'jobId'], how='left')
-    return (merged_df)
+    return (check_task_df)
+
+def clean_check_task(check_task_df):
+    """Removes uneeded ids for merged application checkpoints and tasks df
     
-def merge_check_task_gpu(merged_df, gpu_df):
-    return(merged_df)
+    Parameters
+    ----------
+    check_task_df
+         merged application checkpoints and tasks df to clean
+
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+        Cleaned GPU dataframe
+
+    """  
+    check_task_df.drop(columns= ['jobId', 'taskId'], inplace=True)
+    return(check_task_df)
+    
+def merge_check_task_gpu(check_task_df, gpu_df):
+
+    return(check_task_df)
     
 na_per(gpu_df)
 na_per(checkpoints_df)

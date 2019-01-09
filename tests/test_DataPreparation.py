@@ -23,7 +23,7 @@ tasks_df = pd.read_csv('data/raw/task-x-y.csv')
 pandas.core.frame.DataFrame: Task dataframe for executing task 
 """
 
-merged_df = bf.merge_check_task(checkpoints_df, tasks_df) 
+check_task_df = bf.merge_check_task(checkpoints_df, tasks_df) 
 """
 pandas.core.frame.DataFrame: Checkpoint and Task merged dataframe
 """
@@ -64,7 +64,7 @@ def global_tasks():
     return(tasks_df)
     
 @pytest.fixture
-def global_merged():
+def global_check_task_df():
     """Fixture used to pass the application and tasks merged dataframe
     
     Returns
@@ -72,7 +72,7 @@ def global_merged():
     pandas.core.frame.DataFrame
         application and tasks merged dataframe
     """
-    return(merged_df)
+    return(check_task_df)
 
 @pytest.mark.usefixtures('global_gpu')
 class TestGPUCleaning(object):
@@ -87,22 +87,36 @@ class TestGPUCleaning(object):
         gpu_df = bf.clean_gpu(global_gpu)
         assert not('gpuSerial' in gpu_df.columns)
 
-@pytest.mark.usefixtures('global_merged')
+@pytest.mark.usefixtures('global_check_task_df')
 class TestCheckTaskMerge(object):
     """ Tests task and application checkpoints merge
 
     """
     
-    def test_check_col_count(self, global_merged):
+    def test_check_col_count(self, global_check_task_df):
         """ Tests if merge has correct number of columns
 
         """
-        assert (len(global_merged.columns) == 9)
+        assert (len(global_check_task_df.columns) == 9)
     
 
-    def test_check_keys(self, global_merged):             
+    def test_check_keys(self, global_check_task_df):             
          """ Tests if keys task and job id are present
 
          """
          cols = ['taskId', 'jobId']
-         assert (global_merged.columns.isin(cols).any())
+         assert (global_check_task_df.columns.isin(cols).any())
+         
+@pytest.mark.usefixtures('global_check_task_df')
+class TestCheckTaskCleaning(object):
+     """ Tests task and application checkpoints merged dataframe cleaning
+
+     """
+     
+     def test_Id_drop(self, global_check_task_df):      
+        """ Tests if task id was removed
+
+        """
+        check_task_df = bf.clean_check_task(global_check_task_df)        
+        cols = ['taskId', 'jobId']
+        assert not (check_task_df.columns.isin(cols).any())
