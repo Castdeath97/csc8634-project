@@ -137,4 +137,4 @@ final_merged_df = merge_check_task_gpu(merged_df, gpu_df)
 
 # save final dataset
 
-final_merged_df.to_csv("/data/processed/processed.csv")
+final_merged_df.to_csv("data/processed/processed.csv")
