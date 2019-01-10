@@ -10,14 +10,18 @@ Ammar Hasan 150454388 January 2018
 import pandas as pd
 import numpy as np
 
+# Read required CSV files
+
 gpu_df = pd.read_csv('data/raw/gpu.csv')
 """
 pandas.core.frame.DataFrame: GPU dataframe for gpu stats.
 """
+
 checkpoints_df = pd.read_csv('data/raw/application-checkpoints.csv')
 """
 pandas.core.frame.DataFrame: application/event related checkpoints
 """
+
 tasks_df = pd.read_csv('data/raw/task-x-y.csv')
 """
 pandas.core.frame.DataFrame: Task dataframe for executing task 
@@ -32,7 +36,8 @@ def na_per(df):
         dataframe to check
 
     """
-
+    # Count number of na cells and compare to total
+    
     cellCount = np.product(df.shape)
     naCount = df.isna().sum()
     totalNa = naCount.sum()
@@ -59,7 +64,7 @@ def clean_gpu(gpu_df):
     return(gpu_df)
 
 def merge_check_task(checkpoints_df, tasks_df):
-    """merge checkpoints with task df through job and task id
+    """merge (left join) checkpoints with task df through job and task id
     
     Parameters
     ----------
@@ -76,6 +81,8 @@ def merge_check_task(checkpoints_df, tasks_df):
 
     """   
 
+    # Use left join on taskId and jobId
+    
     check_task_df = checkpoints_df.merge(tasks_df,
                                      on=['taskId', 'jobId'], how='left')
     return (check_task_df)
@@ -94,11 +101,12 @@ def clean_check_task(check_task_df):
         Cleaned GPU dataframe
 
     """  
+    
     check_task_df.drop(columns= ['jobId', 'taskId'], inplace=True)
     return(check_task_df)
     
 def merge_check_task_gpu(check_task_df, gpu_df):
-    """merge checkpoints and task df with gpu df through hostname and timestamp
+    """merge (left join) first merged df with gpu through host and timestamp
     
     Parameters
     ----------
@@ -114,20 +122,19 @@ def merge_check_task_gpu(check_task_df, gpu_df):
         Cleaned GPU dataframe
 
     """   
-
+    
+    # Use left join on hostname and timestamp
+    
     check_task_gpu_df = check_task_df.merge(gpu_df,
                                      on=['hostname', 'timestamp'], how='left')
     return(check_task_gpu_df)
     
-na_per(gpu_df)
-na_per(checkpoints_df)
-na_per(tasks_df)
-
-print(gpu_df.shape)
-gpu_df = clean_gpu(gpu_df)
-print(gpu_df.shape)
-
+# Cleaning process
+    
+clean_gpu_df = clean_gpu(gpu_df)
 merged_df = merge_check_task(checkpoints_df, tasks_df)
-print(merged_df.shape)
-print(merged_df.columns)
-na_per(merged_df)
+final_merged_df = merge_check_task_gpu(merged_df, gpu_df)
+
+# save final dataset
+
+final_merged_df.to_csv("/data/processed/processed.csv")

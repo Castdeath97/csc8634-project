@@ -10,6 +10,8 @@ import pandas as pd
 from src.features import build_features as bf
 import pytest
 
+# Read required CSVs
+
 gpu_df = pd.read_csv('data/raw/gpu.csv')
 """
 pandas.core.frame.DataFrame: GPU dataframe for gpu stats.
