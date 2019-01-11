@@ -51,10 +51,10 @@ def timestamp_conv(df):
     float
          converted timestamp
 
-    """ 
-    
-    return(df.applymap(lambda x: 
-        (datetime.strptime(x, TIMESTAMP_FORMAT) - EPOCH).total_seconds()))
+    """     
+    df = df.apply(lambda x: 
+        (datetime.strptime(x, TIMESTAMP_FORMAT) - EPOCH).total_seconds())
+    return(df)
 
 def na_per(df):
     """Prints percentage of na values
@@ -97,7 +97,7 @@ def clean_gpu(gpu_df):
     
     # Convert timestamp to seconds till epoch
     
-    gpu_df = timestamp_conv(gpu_df)
+    gpu_df['timestamp'] = timestamp_conv(gpu_df['timestamp'])
     
     return(gpu_df)
 
@@ -146,7 +146,8 @@ def clean_check_task(check_task_df):
     check_task_df.drop(columns= ['jobId', 'taskId'], inplace=True)
     
     # Convert timestamp format to seconds since epoch
-    check_task_df = timestamp_conv(check_task_df)
+    
+    check_task_df['timestamp'] = timestamp_conv(check_task_df['timestamp'])
 
     return(check_task_df)
     
@@ -167,11 +168,7 @@ def merge_check_task_gpu(check_task_df, gpu_df):
         Cleaned GPU dataframe
 
     """   
-    
-    # Change timestamp to seconds since epoch
-    check_task_df.applymap(lambda x:
-        (datetime.strptime(x, TIMESTAMP_FORMAT) - EPOCH).total_seconds())
-    
+        
     # Use left join on hostname and timestamp
     
     check_task_gpu_df = check_task_df.merge(gpu_df,
@@ -182,7 +179,8 @@ def merge_check_task_gpu(check_task_df, gpu_df):
     
 clean_gpu_df = clean_gpu(gpu_df)
 merged_df = merge_check_task(checkpoints_df, tasks_df)
-final_merged_df = merge_check_task_gpu(merged_df, gpu_df)
+clean_merged_df = clean_check_task(merged_df)
+final_merged_df = merge_check_task_gpu(clean_merged_df, clean_gpu_df)
 
 # save final dataset
 
