@@ -1,4 +1,4 @@
-"""test_DataPreparation
+ """test_DataPreparation
 
 This python file contains the source code used to test the data preparation
 process
@@ -101,10 +101,20 @@ def global_check_task_gpu_df():
     """
     return(check_task_gpu_df)
     
-
-@pytest.mark.usefixtures('global_gpu')
+@pytest.fixture
+def global_timestamp_format():
+    """Fixture used to pass the timestamp format for epoch conversion
+    
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+        application, tasks and gpu final merged dataframe
+    """
+    return('%Y-%m-%dT%H:%M:%S.%fZ')
+    
+@pytest.mark.usefixtures('global_gpu', 'global_timestamp_format')
 class TestGPUCleaning(object):
-     """ Tests gpu.csv file cleaning   
+     """ Tests gpu.csv dataframe cleaning   
 
      """
      
@@ -114,6 +124,14 @@ class TestGPUCleaning(object):
         """
         gpu_df = bf.clean_gpu(global_gpu)
         assert not('gpuSerial' in gpu_df.columns)
+        
+     def test_timestamp_conv(self, global_gpu, global_timestamp_format):
+        """ Tests if timestamp epoch conversion was done for all rows
+        
+        """
+        fieldCount = len(global_gpu['timestamp'].str.contains
+                         (global_timestamp_format).index)
+        assert(fieldCount == len(global_gpu.index))
 
 @pytest.mark.usefixtures('global_check_task_df')
 class TestCheckTaskMerge(object):
@@ -135,7 +153,7 @@ class TestCheckTaskMerge(object):
          cols = ['taskId', 'jobId']
          assert (global_check_task_df.columns.isin(cols).any())
          
-@pytest.mark.usefixtures('global_check_task_df')
+@pytest.mark.usefixtures('global_check_task_df', 'global_timestamp_format')
 class TestCheckTaskCleaning(object):
      """ Tests task and application checkpoints merged dataframe cleaning
 
@@ -149,6 +167,14 @@ class TestCheckTaskCleaning(object):
         cols = ['taskId', 'jobId']
         assert not (check_task_df.columns.isin(cols).any())
         
+     def test_timestamp_conv(self, global_check_task_df,
+                             global_timestamp_format):
+        """ Tests if timestamp epoch conversion was done for all rows
+        
+        """     
+        fieldCount = len(global_check_task_df['timestamp'].str.contains
+                         (global_timestamp_format).index)
+        assert(fieldCount == len(global_check_task_df.index))
 
 @pytest.mark.usefixtures('global_check_task_gpu_df')
 class TestCheckTaskGPUMerge(object):

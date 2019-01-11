@@ -9,6 +9,7 @@ Ammar Hasan 150454388 January 2018
 
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 # Read required CSV files
 
@@ -26,6 +27,34 @@ tasks_df = pd.read_csv('data/raw/task-x-y.csv')
 """
 pandas.core.frame.DataFrame: Task dataframe for executing task 
 """
+
+TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
+"""
+str: string used to format timestamp for seconds sinc epoch conversion
+"""
+
+EPOCH = datetime(1970, 1, 1)
+"""
+datetime: datetime representing epoch used for seconds sinc epoch conversion
+"""
+
+def timestamp_conv(df):
+    """ Converts a timestamp to seconds since epoch
+    
+    Parameters
+    ----------
+    df
+        dataframe to convert its timestamp 
+        
+    Returns
+    -------
+    float
+         converted timestamp
+
+    """ 
+    
+    return(df.applymap(lambda x: 
+        (datetime.strptime(x, TIMESTAMP_FORMAT) - EPOCH).total_seconds()))
 
 def na_per(df):
     """Prints percentage of na values
@@ -47,7 +76,8 @@ def na_per(df):
           round(((totalNa/cellCount) * 100), 2), "%", "NAs")
 
 def clean_gpu(gpu_df):
-    """Clean gpu dataframe by dropping uneeded serial number
+    """Clean gpu dataframe by dropping uneeded serial number and
+    fixes timestamp to seconds till epoch
     
     Parameters
     ----------
@@ -60,7 +90,15 @@ def clean_gpu(gpu_df):
         Cleaned GPU dataframe
 
     """
+    
+    # Drop uneeded serial column 
+    
     gpu_df.drop(columns='gpuSerial', inplace=True)
+    
+    # Convert timestamp to seconds till epoch
+    
+    gpu_df = timestamp_conv(gpu_df)
+    
     return(gpu_df)
 
 def merge_check_task(checkpoints_df, tasks_df):
@@ -88,7 +126,8 @@ def merge_check_task(checkpoints_df, tasks_df):
     return (check_task_df)
 
 def clean_check_task(check_task_df):
-    """Removes uneeded ids for merged application checkpoints and tasks df
+    """Removes uneeded ids for merged application checkpoints and tasks df and
+    fixes timestamp to seconds till epoch
     
     Parameters
     ----------
@@ -102,7 +141,13 @@ def clean_check_task(check_task_df):
 
     """  
     
+    # Drop uneeded ids
+    
     check_task_df.drop(columns= ['jobId', 'taskId'], inplace=True)
+    
+    # Convert timestamp format to seconds since epoch
+    check_task_df = timestamp_conv(check_task_df)
+
     return(check_task_df)
     
 def merge_check_task_gpu(check_task_df, gpu_df):
@@ -122,6 +167,10 @@ def merge_check_task_gpu(check_task_df, gpu_df):
         Cleaned GPU dataframe
 
     """   
+    
+    # Change timestamp to seconds since epoch
+    check_task_df.applymap(lambda x:
+        (datetime.strptime(x, TIMESTAMP_FORMAT) - EPOCH).total_seconds())
     
     # Use left join on hostname and timestamp
     
