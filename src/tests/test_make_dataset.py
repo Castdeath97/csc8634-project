@@ -7,40 +7,40 @@ Ammar Hasan 150454388 January 2018
 
 """
 import pandas as pd
-from src.features import build_features as bf
+from src.data import make_dataset as md
 import pytest
 
 # Read required CSVs
 
-gpu_df = pd.read_csv('data/raw/gpu.csv')
+gpu_df = pd.read_csv('../data/raw/gpu.csv')
 """
 pandas.core.frame.DataFrame: GPU dataframe for gpu stats.
 """
 
-checkpoints_df = pd.read_csv('data/raw/application-checkpoints.csv')
+checkpoints_df = pd.read_csv('../data/raw/application-checkpoints.csv')
 """
 pandas.core.frame.DataFrame: application/event related checkpoints
 """
 
-tasks_df = pd.read_csv('data/raw/task-x-y.csv')
+tasks_df = pd.read_csv('../data/raw/task-x-y.csv')
 """
 pandas.core.frame.DataFrame: Task dataframe for executing task 
 """
 
-check_task_df = bf.merge_check_task(checkpoints_df, tasks_df) 
+check_task_df = md.merge_check_task(checkpoints_df, tasks_df) 
 """
 pandas.core.frame.DataFrame: Checkpoint and Task merged dataframe
 """
 
-check_task_df2 = bf.merge_check_task(checkpoints_df, tasks_df) 
+check_task_df2 = md.merge_check_task(checkpoints_df, tasks_df) 
 """
 pandas.core.frame.DataFrame: Checkpoint and Task merged dataframe copy for 2nd
 merge to tests effecting each other
 """
 
-check_task_gpu_df = bf.merge_check_task_gpu(
-        bf.clean_check_task(check_task_df2),
-        bf.clean_gpu(pd.read_csv('data/raw/gpu.csv'))) 
+check_task_gpu_df = md.merge_check_task_gpu(
+        md.clean_check_task(check_task_df2),
+        md.clean_gpu(pd.read_csv('../data/raw/gpu.csv'))) 
 """
 pandas.core.frame.DataFrame: Checkpoint, Task and GPU merged dataframe
 """
@@ -112,7 +112,7 @@ class TestGPUCleaning(object):
         """ Tests if serial id was removed
 
         """
-        gpu_df = bf.clean_gpu(global_gpu)
+        gpu_df = md.clean_gpu(global_gpu)
         assert not('gpuSerial' in gpu_df.columns)
         
      def test_timestamp_conv(self, global_gpu):
@@ -151,7 +151,7 @@ class TestCheckTaskCleaning(object):
         """ Tests if task id was removed
 
         """
-        check_task_df = bf.clean_check_task(global_check_task_df)        
+        check_task_df = md.clean_check_task(global_check_task_df)        
         cols = ['taskId', 'jobId']
         assert not (check_task_df.columns.isin(cols).any())
         
