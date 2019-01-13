@@ -2,18 +2,20 @@
 import logging
 import pandas as pd
 import numpy as np
+from pathlib import Path
+from dotenv import find_dotenv, load_dotenv
 from datetime import datetime
 
 # Epoc
 
 TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 """
-str: string used to format timestamp for seconds sinc epoch conversion
+str: string used to format timestamp for ms sinc epoch conversion
 """
 
 EPOCH = datetime(1970, 1, 1)
 """
-datetime: datetime representing epoch used for seconds sinc epoch conversion
+datetime: datetime representing epoch used for ms sinc epoch conversion
 """
 
 # Filenames
@@ -39,7 +41,7 @@ str: processed.csv final dataset file location
 """
 
 def timestamp_conv(df):
-    """ Converts a timestamp to seconds since epoch
+    """ Converts a timestamp to ms since epoch
 
     Parameters
     ----------
@@ -52,8 +54,8 @@ def timestamp_conv(df):
          converted timestamp
 
     """
-    df = df.apply(lambda x:
-        (datetime.strptime(x, TIMESTAMP_FORMAT) - EPOCH).total_seconds())
+    df = df.apply(lambda x: 
+        (datetime.strptime(x, TIMESTAMP_FORMAT) - EPOCH).total_seconds() * 1000)
     return(df)
 
 def na_per(df):
@@ -77,7 +79,7 @@ def na_per(df):
 
 def clean_gpu(gpu_df):
     """Clean gpu dataframe by dropping uneeded serial number and
-    fixes timestamp to seconds till epoch
+    fixes timestamp to ms till epoch
 
     Parameters
     ----------
@@ -95,7 +97,7 @@ def clean_gpu(gpu_df):
 
     gpu_df.drop(columns='gpuSerial', inplace=True)
 
-    # Convert timestamp to seconds till epoch
+    # Convert timestamp to ms till epoch
 
     gpu_df['timestamp'] = timestamp_conv(gpu_df['timestamp'])
 
@@ -127,7 +129,7 @@ def merge_check_task(checkpoints_df, tasks_df):
 
 def clean_check_task(check_task_df):
     """Removes uneeded ids for merged application checkpoints and tasks df and
-    fixes timestamp to seconds till epoch
+    fixes timestamp to ms till epoch
 
     Parameters
     ----------
@@ -145,22 +147,23 @@ def clean_check_task(check_task_df):
 
     check_task_df.drop(columns= ['jobId', 'taskId'], inplace=True)
 
-    # Convert timestamp format to seconds since epoch
+    # Convert timestamp format to ms since epoch
 
     check_task_df['timestamp'] = timestamp_conv(check_task_df['timestamp'])
 
     return(check_task_df)
 
-def merge_check_task_gpu(check_task_df, gpu_df):
-    """merge (left join) first merged df with gpu through host and timestamp
+def merge_check_task_gpu(gpu_df, check_task_df):
+    """merge (left join) gpu with first merged df through host and timestamp
 
     Parameters
     ----------
-    check_task_df
-        application checkpoints and tasks megred dataframe to merge with gpu df
-
+    
     gpu_df
         gpu dataframe to merge
+        
+    check_task_df
+        application checkpoints and tasks megred dataframe to merge with gpu df
 
     Returns
     -------
@@ -169,10 +172,44 @@ def merge_check_task_gpu(check_task_df, gpu_df):
 
     """
 
-    # Use left join on hostname and timestamp
+    # Use fuzzy left join on hostname and timestamp
 
-    check_task_gpu_df = check_task_df.merge(gpu_df,
-                                     on=['hostname', 'timestamp'], how='left')
+    keys = ['hostname', 'timestamp']
+    
+    # set keys as indexes for join 
+    
+    gpu_df.set_index(keys[1], inplace=True)
+    check_task_df.set_index(keys[1], inplace=True)
+    
+    
+    # sort by index
+    
+    gpu_df.sort_index(inplace=True)
+    check_task_df.sort_index(inplace=True)
+    
+    # Change index to integer   
+    gpu_df.index = gpu_df.index.astype(int)
+    check_task_df.index = check_task_df.index.astype(int)
+ 
+    
+    #check_task_gpu_df = pd.merge_asof(gpu_df, check_task_df, left_index = True,
+                                     # right_index = True, tolerance = 20,
+                                     # direction = 'nearest')
+
+    check_task_gpu_df = pd.merge_asof(gpu_df, check_task_df, by = keys[0], 
+                                      left_index = True, right_index = True,
+                                      tolerance = 250, direction = 'nearest')
+
+    check_task_gpu_df.dropna(inplace=True)
+    
+   # check_task_gpu_df = pd.merge_asof(check_task_df, gpu_df, on = keys[0],
+                    #  tolerance = 20, direction = 'nearest' )
+    
+   # check_task_gpu_df = fz.fuzzy_left_join(check_task_df, gpu_df,
+                                         #  left_on = keys, right_on = keys)
+
+   # check_task_gpu_df = check_task_df.merge(gpu_df,
+                               #      on=['hostname', 'timestamp'], how='left')
     return(check_task_gpu_df)
 
 
@@ -191,12 +228,12 @@ def main():
 
     tasks_df = pd.read_csv(TASK_CSV_FILE)
     
-    # Cleaning process
+    # Cleaning and merging process 
     
     clean_gpu_df = clean_gpu(gpu_df)
     merged_df = merge_check_task(checkpoints_df, tasks_df)
     clean_merged_df = clean_check_task(merged_df)
-    final_merged_df = merge_check_task_gpu(clean_merged_df, clean_gpu_df)
+    final_merged_df = merge_check_task_gpu(clean_gpu_df, clean_merged_df)
 
     # save final dataset
     
