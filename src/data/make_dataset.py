@@ -7,14 +7,15 @@ process
 
 Author: Ammar Hasan 150454388 January 2018
 
+Code
+------
+
 """
 # -*- coding: utf-8 -*-
 import logging
 import pandas as pd
 import numpy as np
 from pathlib import Path
-
-# Filenames
 
 GPU_CSV_FILE = 'data/raw/gpu.csv'
 """

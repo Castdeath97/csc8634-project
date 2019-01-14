@@ -8,12 +8,13 @@ process
 
 Author: Ammar Hasan 150454388 January 2018
 
+Code
+------
+
 """
 import pandas as pd
 from src.data import make_dataset as md
 import pytest
-
-# Filenames
 
 GPU_CSV_FILE = 'data/raw/gpu.csv'
 """
@@ -67,8 +68,7 @@ def global_checkpoints():
         application checkpoints dataframe
     """
     return(pd.read_csv(CHECK_CSV_FILE))
-
-    
+  
 @pytest.fixture
 def global_tasks():
     """Fixture used to pass the tasks dataset
@@ -139,4 +139,3 @@ class TestCheckTaskCleaning(object):
         check_task_df = md.clean_check_task(global_check_task_df)        
         cols = ['taskId', 'jobId']
         assert not (check_task_df.columns.isin(cols).any())
-        
