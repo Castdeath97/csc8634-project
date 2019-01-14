@@ -45,25 +45,6 @@ PROCESSED_CHECK_TASK_CSV_FILE = 'data/processed/check-task-processed.csv'
 str: check-task-processed.csv final dataset file location 
 """
 
-def na_per(df):
-    """Prints percentage of na values
-
-    Parameters
-    ----------
-    df
-        dataframe to check
-
-    """
-    # Count number of na cells and compare to total
-
-    cellCount = np.product(df.shape)
-    naCount = df.isna().sum()
-    totalNa = naCount.sum()
-
-    # Print NAs values %
-    print("The dataframe has: ",
-          round(((totalNa/cellCount) * 100), 2), "%", "NAs")
-
 def clean_gpu(gpu_df):
     """Clean gpu dataframe by dropping uneeded serial number and
     fixes timestamp format to datetime
@@ -146,13 +127,13 @@ def main():
     
     # Cleaning and merging process 
     
-    clean_gpu_df = clean_gpu(gpu_df)
+    gpu_df = clean_gpu(gpu_df)
     check_task_df = merge_check_task(checkpoints_df, tasks_df)
-    clean_check_task_df = clean_check_task(check_task_df)
+    check_task_df = clean_check_task(check_task_df)
 
     # save final dataset
-    clean_gpu_df.to_csv(PROCESSED_GPU_CSV_FILE)
-    clean_check_task_df.to_csv(PROCESSED_CHECK_TASK_CSV_FILE)
+    gpu_df.to_csv(PROCESSED_GPU_CSV_FILE)
+    check_task_df.to_csv(PROCESSED_CHECK_TASK_CSV_FILE)
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

@@ -6,6 +6,7 @@
 CSC8634 Project Documentation
 ******************************
 This Documentation documents the code that isn't used in jupyter notebook for the CSC8634 Project.
+
 Author: Ammar Hasan 150454388 January 2018
 
 .. toctree::

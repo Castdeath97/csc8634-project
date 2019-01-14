@@ -120,7 +120,7 @@ help:
 			line_length -= length(words[i]) + 1; \
 			if (line_length <= 0) { \
 				line_length = ncol - indent - length(words[i]) - 1; \
-				printf "\n   %*s ", -indent, " "; \
+				printf "\n%*s ", -indent, " "; \
 			} \
 			printf "%s ", words[i]; \
 		} \
