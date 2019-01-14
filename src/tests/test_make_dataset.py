@@ -10,39 +10,36 @@ import pandas as pd
 from src.data import make_dataset as md
 import pytest
 
-# Read required CSVs
+# Filenames
 
-gpu_df = pd.read_csv('../data/raw/gpu.csv')
+GPU_CSV_FILE = 'data/raw/gpu.csv'
 """
-pandas.core.frame.DataFrame: GPU dataframe for gpu stats.
-"""
-
-checkpoints_df = pd.read_csv('../data/raw/application-checkpoints.csv')
-"""
-pandas.core.frame.DataFrame: application/event related checkpoints
+str: gpu.csv file location 
 """
 
-tasks_df = pd.read_csv('../data/raw/task-x-y.csv')
+CHECK_CSV_FILE = 'data/raw/application-checkpoints.csv'
 """
-pandas.core.frame.DataFrame: Task dataframe for executing task 
-"""
-
-check_task_df = md.merge_check_task(checkpoints_df, tasks_df) 
-"""
-pandas.core.frame.DataFrame: Checkpoint and Task merged dataframe
+str: application-checkpoints.csv filename file location 
 """
 
-check_task_df2 = md.merge_check_task(checkpoints_df, tasks_df) 
+TASK_CSV_FILE = 'data/raw/task-x-y.csv'
 """
-pandas.core.frame.DataFrame: Checkpoint and Task merged dataframe copy for 2nd
-merge to tests effecting each other
+str: task-x-y.csv file location 
 """
 
-check_task_gpu_df = md.merge_check_task_gpu(
-        md.clean_check_task(check_task_df2),
-        md.clean_gpu(pd.read_csv('../data/raw/gpu.csv'))) 
+PROCESSED_GPU_CSV_FILE = 'data/processed/gpu-processed.csv'
 """
-pandas.core.frame.DataFrame: Checkpoint, Task and GPU merged dataframe
+str: gpu-processed.csv final dataset file location 
+"""
+
+PROCESSED_GPU_CSV_FILE = 'data/processed/gpu-processed.csv'
+"""
+str: gpu-processed.csv final dataset file location 
+"""
+
+PROCESSED_CHECK_TASK_CSV_FILE = 'data/processed/check-task-processed.csv'
+"""
+str: check-task-processed.csv final dataset file location 
 """
 
 @pytest.fixture
@@ -54,7 +51,7 @@ def global_gpu():
     pandas.core.frame.DataFrame
         GPU dataframe
     """
-    return(gpu_df)
+    return(pd.read_csv(GPU_CSV_FILE))
 
    
 @pytest.fixture
@@ -66,7 +63,7 @@ def global_checkpoints():
     pandas.core.frame.DataFrame
         application checkpoints dataframe
     """
-    return(checkpoints_df)
+    return(pd.read_csv(CHECK_CSV_FILE))
 
     
 @pytest.fixture
@@ -78,7 +75,7 @@ def global_tasks():
     pandas.core.frame.DataFrame
         tasks dataframe
     """
-    return(tasks_df)
+    return(pd.read_csv(TASK_CSV_FILE))
     
 @pytest.fixture
 def global_check_task_df():
@@ -89,19 +86,9 @@ def global_check_task_df():
     pandas.core.frame.DataFrame
         application and tasks merged dataframe
     """
-    return(check_task_df)
+    return(md.merge_check_task(pd.read_csv(CHECK_CSV_FILE),
+                               pd.read_csv(TASK_CSV_FILE)))
 
-@pytest.fixture
-def global_check_task_gpu_df():
-    """Fixture used to pass the application, tasks and gpu merged dataframe
-    
-    Returns
-    -------
-    pandas.core.frame.DataFrame
-        application, tasks and gpu final merged dataframe
-    """
-    return(check_task_gpu_df)
-    
 @pytest.mark.usefixtures('global_gpu')
 class TestGPUCleaning(object):
      """ Tests gpu.csv dataframe cleaning   
@@ -114,12 +101,7 @@ class TestGPUCleaning(object):
         """
         gpu_df = md.clean_gpu(global_gpu)
         assert not('gpuSerial' in gpu_df.columns)
-        
-     def test_timestamp_conv(self, global_gpu):
-        """ Tests if timestamp epoch conversion was done for rows (is float)
-        
-        """     
-        assert(global_gpu.timestamp.apply(lambda x: type(x) == float).all())
+
 
 @pytest.mark.usefixtures('global_check_task_df')
 class TestCheckTaskMerge(object):
@@ -155,30 +137,3 @@ class TestCheckTaskCleaning(object):
         cols = ['taskId', 'jobId']
         assert not (check_task_df.columns.isin(cols).any())
         
-     def test_timestamp_conv(self, global_check_task_df):
-        """ Tests if timestamp epoch conversion was done for rows (is float)
-        
-        """     
-        assert(global_check_task_df.timestamp.apply
-               (lambda x: type(x) == float).all())
-        
-
-@pytest.mark.usefixtures('global_check_task_gpu_df')
-class TestCheckTaskGPUMerge(object):
-    """ Tests task, application checkpoints and gpu final merge
-
-    """
-    
-    def test_check_col_count(self, global_check_task_gpu_df):
-        """ Tests if merge has correct number of columns
-
-        """
-        assert (len(global_check_task_gpu_df.columns) == 12)
-    
-
-    def test_check_keys(self, global_check_task_gpu_df):             
-         """ Tests if keys timestamp and hostname are present
-
-         """
-         cols = ['timestamp', 'hostname']
-         assert (global_check_task_gpu_df.columns.isin(cols).any())

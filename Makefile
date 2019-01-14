@@ -9,6 +9,7 @@ BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
 PROFILE = default
 PROJECT_NAME = csc8634_project
 PYTHON_INTERPRETER = python3
+PYTEST_DIR = 'src/tests'
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -29,9 +30,9 @@ requirements: test_environment
 data: requirements
 	$(PYTHON_INTERPRETER) src/data/make_dataset.py
 	
-## Make Features
-features: requirements
-	$(PYTHON_INTERPRETER) src/features/build_features.py
+## test using pytest    
+test: requirements
+	pytest $(PYTEST_DIR)
 
 ## Delete all compiled Python files
 clean:
