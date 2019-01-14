@@ -1,3 +1,13 @@
+"""
+Introduction
+--------------
+
+This python file contains the source code used to carry the data preparation
+process
+
+Author: Ammar Hasan 150454388 January 2018
+
+"""
 # -*- coding: utf-8 -*-
 import logging
 import pandas as pd

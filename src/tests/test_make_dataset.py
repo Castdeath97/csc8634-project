@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-"""test_DataPreparation
+"""
+Introduction
+--------------
 
 This python file contains the source code used to test the data preparation
 process
 
-Ammar Hasan 150454388 January 2018
+Author: Ammar Hasan 150454388 January 2018
 
 """
 import pandas as pd

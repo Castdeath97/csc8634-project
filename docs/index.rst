@@ -6,14 +6,18 @@
 csc8634_project Documentation
 ==============================================
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
+   
+src.data.make_dataset
+======================
 
 .. automodule:: src.data.make_dataset
    :members:
    
+src.tests.test_make_dataset
+============================
+
 .. automodule:: src.tests.test_make_dataset
    :members:
    
