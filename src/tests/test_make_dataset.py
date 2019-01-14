@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """test_DataPreparation
 
 This python file contains the source code used to test the data preparation
