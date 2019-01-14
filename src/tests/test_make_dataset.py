@@ -6,8 +6,6 @@ Introduction
 This python file contains the source code used to test the data preparation
 process
 
-Author: Ammar Hasan 150454388 January 2018
-
 Code
 ------
 
