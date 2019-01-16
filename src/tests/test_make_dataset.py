@@ -14,32 +14,38 @@ import pandas as pd
 from src.data import make_dataset as md
 import pytest
 
-GPU_CSV_FILE = 'data/raw/gpu.csv'
+
+BASE_RAW_DATA_DIR = 'data/raw'
+"""
+str: Base raw data directory
+"""
+
+GPU_CSV_FILE = BASE_RAW_DATA_DIR + '/gpu.csv'
 """
 str: gpu.csv file location 
 """
 
-CHECK_CSV_FILE = 'data/raw/application-checkpoints.csv'
+CHECK_CSV_FILE = BASE_RAW_DATA_DIR +  '/application-checkpoints.csv'
 """
 str: application-checkpoints.csv filename file location 
 """
 
-TASK_CSV_FILE = 'data/raw/task-x-y.csv'
+TASK_CSV_FILE = BASE_RAW_DATA_DIR + '/task-x-y.csv'
 """
 str: task-x-y.csv file location 
 """
 
-PROCESSED_GPU_CSV_FILE = 'data/processed/gpu-processed.csv'
+PROCESSED_GPU_CSV_FILE = BASE_RAW_DATA_DIR + '/gpu-processed.csv'
 """
 str: gpu-processed.csv final dataset file location 
 """
 
-PROCESSED_GPU_CSV_FILE = 'data/processed/gpu-processed.csv'
+PROCESSED_GPU_CSV_FILE = BASE_RAW_DATA_DIR + '/gpu-processed.csv'
 """
 str: gpu-processed.csv final dataset file location 
 """
 
-PROCESSED_CHECK_TASK_CSV_FILE = 'data/processed/check-task-processed.csv'
+PROCESSED_CHECK_TASK_CSV_FILE = BASE_RAW_DATA_DIR + '/check-task-processed.csv'
 """
 str: check-task-processed.csv final dataset file location 
 """
