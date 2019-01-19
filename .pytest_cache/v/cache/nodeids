@@ -1,6 +1,11 @@
 [
   "src/tests/test_make_dataset.py::TestGPUCleaning::test_serial_drop",
+  "src/tests/test_make_dataset.py::TestGPUCleaning::test_timestamp_conv",
   "src/tests/test_make_dataset.py::TestCheckTaskMerge::test_check_col_count",
   "src/tests/test_make_dataset.py::TestCheckTaskMerge::test_check_keys",
-  "src/tests/test_make_dataset.py::TestCheckTaskCleaning::test_Id_drop"
+  "src/tests/test_make_dataset.py::TestCheckTaskCleaning::test_Id_drop",
+  "src/tests/test_make_dataset.py::TestCheckTaskCleaning::test_timestamp_conv",
+  "src/tests/test_make_dataset.py::TestCheckTaskGPUMerge::test_check_col_count",
+  "src/tests/test_make_dataset.py::TestCheckTaskGPUMerge::test_check_keys",
+  "src/tests/test_make_dataset.py::TestCheckTaskGPUMerge::test_nulls"
 ]

@@ -13,6 +13,7 @@ Code
 import logging
 import pandas as pd
 from pathlib import Path
+from datetime import datetime
 
 BASE_RAW_DATA_DIR = 'data/raw'
 """
@@ -39,14 +40,29 @@ TASK_CSV_FILE = BASE_RAW_DATA_DIR + '/task-x-y.csv'
 str: task-x-y.csv file location 
 """
 
-PROCESSED_GPU_CSV_FILE = BASE_PROCESSED_DATA_DIR + '/gpu-processed.csv'
+PROCESSED_CSV_FILE = BASE_PROCESSED_DATA_DIR + '/processed.csv'
 """
-str: gpu-processed.csv final dataset file location 
+str: processed.csv final dataset file location 
 """
-PROCESSED_CHECK_TASK_CSV_FILE = BASE_PROCESSED_DATA_DIR + '/check-task-processed.csv'
+
+TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 """
-str: check-task-processed.csv final dataset file location 
+str: string used to format timestamp for datetime conversion
 """
+
+def timestamp_conv(df):
+    """ Converts a timestamp to datetime
+    
+    Parameters
+    ----------
+    df
+        dataframe to convert to datetime
+    -------
+    float
+         converted timestamp
+    """
+    df = df.apply(lambda x: (datetime.strptime(x, TIMESTAMP_FORMAT)))    
+    return(df)
 
 def clean_gpu(gpu_df):
     """Clean gpu dataframe by dropping uneeded serial number and
@@ -67,6 +83,7 @@ def clean_gpu(gpu_df):
     # Drop uneeded serial column
 
     gpu_df.drop(columns='gpuSerial', inplace=True)
+    gpu_df['timestamp'] = timestamp_conv(gpu_df['timestamp'])
     
     return(gpu_df)
 
@@ -95,7 +112,8 @@ def merge_check_task(checkpoints_df, tasks_df):
     return (check_task_df)
 
 def clean_check_task(check_task_df):
-    """Removes uneeded ids for merged application checkpoints and tasks df 
+    """Removes uneeded ids and fixes timestamp format to datetime 
+    for merged application checkpoints and tasks df
 
     Parameters
     ----------
@@ -112,8 +130,59 @@ def clean_check_task(check_task_df):
     # Drop uneeded ids
 
     check_task_df.drop(columns= ['jobId', 'taskId'], inplace=True)
+    
+    # Fix date format
+    
+    check_task_df['timestamp'] = timestamp_conv(check_task_df['timestamp'])
 
     return(check_task_df)
+
+def merge_check_task_gpu(gpu_df, check_task_df):
+    """merge (left join) gpu with first merged df through host and timestamp
+    
+    Parameters
+    ----------
+    gpu_df
+        gpu dataframe to merge
+        
+    check_task_df
+        application checkpoints and tasks megred dataframe to merge with gpu df
+
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+        Cleaned GPU dataframe
+    """
+    
+    # set keys as indexes for join 
+
+    gpu_df.set_index('timestamp', inplace=True)
+    check_task_df.set_index('timestamp', inplace=True)
+        
+    # sort by index
+   
+    gpu_df.sort_index(inplace=True)
+    check_task_df.sort_index(inplace=True)
+
+    # Make timestamp df for first merge 
+    
+    timestamp_df = check_task_df.copy()
+    timestamp_df.drop(['hostname', 'eventName', 
+                       'eventType', 'x', 'y', 'level'], axis=1, inplace= True)
+    
+    # Merge with timestamps only to fix timestamps to nearest in other df ...
+    
+    gpu_df = pd.merge_asof(gpu_df, timestamp_df,
+                           left_index = True, right_index = True,
+                           tolerance = pd.Timedelta('0ms'),
+                           direction = 'nearest')
+    
+    # Then merge gpu_df with fixed timestamps with check_task_df
+    
+    check_task_gpu_df = pd.merge(gpu_df, check_task_df,
+                                 on = ['hostname', 'timestamp'])
+
+    return(check_task_gpu_df)
 
 def main():
     """ Runs data processing scripts to turn raw data from (../raw) into
@@ -128,21 +197,22 @@ def main():
     checkpoints_df = pd.read_csv(CHECK_CSV_FILE)
     tasks_df = pd.read_csv(TASK_CSV_FILE)
     
-    # Cleaning and merging process 
-    
+    # Cleaning and merging process    
     gpu_df = clean_gpu(gpu_df)
     check_task_df = merge_check_task(checkpoints_df, tasks_df)
-    check_task_df = clean_check_task(check_task_df)
+    check_task_df = clean_check_task(check_task_df)  
+    check_task_gpu_df = merge_check_task_gpu(gpu_df, check_task_df)
 
     # save final dataset
-    gpu_df.to_csv(PROCESSED_GPU_CSV_FILE)
-    check_task_df.to_csv(PROCESSED_CHECK_TASK_CSV_FILE)
+    
+    check_task_gpu_df.to_csv(PROCESSED_CSV_FILE)
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # not used in this stub but often useful for finding various files
+    
     project_dir = Path(__file__).resolve().parents[2]
 
     main()

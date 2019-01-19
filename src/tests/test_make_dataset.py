@@ -13,7 +13,7 @@ Code
 import pandas as pd
 from src.data import make_dataset as md
 import pytest
-
+from datetime import datetime
 
 BASE_RAW_DATA_DIR = 'data/raw'
 """
@@ -35,19 +35,9 @@ TASK_CSV_FILE = BASE_RAW_DATA_DIR + '/task-x-y.csv'
 str: task-x-y.csv file location 
 """
 
-PROCESSED_GPU_CSV_FILE = BASE_RAW_DATA_DIR + '/gpu-processed.csv'
+TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 """
-str: gpu-processed.csv final dataset file location 
-"""
-
-PROCESSED_GPU_CSV_FILE = BASE_RAW_DATA_DIR + '/gpu-processed.csv'
-"""
-str: gpu-processed.csv final dataset file location 
-"""
-
-PROCESSED_CHECK_TASK_CSV_FILE = BASE_RAW_DATA_DIR + '/check-task-processed.csv'
-"""
-str: check-task-processed.csv final dataset file location 
+str: string used to format timestamp for ms sinc epoch conversion
 """
 
 @pytest.fixture
@@ -95,6 +85,24 @@ def global_check_task_df():
     """
     return(md.merge_check_task(pd.read_csv(CHECK_CSV_FILE),
                                pd.read_csv(TASK_CSV_FILE)))
+    
+@pytest.fixture
+def global_check_task_gpu_df():
+    """Fixture used to pass the application, tasks and gpu merged dataframe
+    
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+        application, tasks and gpu final merged dataframe
+    """
+    return(md.merge_check_task_gpu(
+            md.clean_gpu(pd.read_csv(GPU_CSV_FILE)),
+            md.clean_check_task(md.merge_check_task(
+                    pd.read_csv(CHECK_CSV_FILE),
+                    pd.read_csv(TASK_CSV_FILE)
+                               ))
+                    )
+            )    
 
 @pytest.mark.usefixtures('global_gpu')
 class TestGPUCleaning(object):
@@ -108,7 +116,14 @@ class TestGPUCleaning(object):
         """
         gpu_df = md.clean_gpu(global_gpu)
         assert not('gpuSerial' in gpu_df.columns)
-
+        
+     def test_timestamp_conv(self, global_gpu):
+        """ Tests if timestamp datetime conversion was done for rows
+        
+        """     
+        assert(md.clean_gpu(global_gpu).timestamp.apply
+               (lambda x: isinstance(x, datetime)).all())
+        
 
 @pytest.mark.usefixtures('global_check_task_df')
 class TestCheckTaskMerge(object):
@@ -122,7 +137,6 @@ class TestCheckTaskMerge(object):
         """
         assert (len(global_check_task_df.columns) == 9)
     
-
     def test_check_keys(self, global_check_task_df):             
          """ Tests if keys task and job id are present
 
@@ -143,3 +157,36 @@ class TestCheckTaskCleaning(object):
         check_task_df = md.clean_check_task(global_check_task_df)        
         cols = ['taskId', 'jobId']
         assert not (check_task_df.columns.isin(cols).any())
+        
+     def test_timestamp_conv(self, global_check_task_df):
+        """ Tests if timestamp datetime conversion was done for rows
+        
+        """     
+        assert(md.clean_check_task(global_check_task_df).timestamp.apply
+               (lambda x: isinstance(x, datetime)).all())
+        
+@pytest.mark.usefixtures('global_check_task_gpu_df')
+class TestCheckTaskGPUMerge(object):
+    """ Tests task, application checkpoints and gpu final merge
+    
+    """
+    
+    def test_check_col_count(self, global_check_task_gpu_df):
+        """ Tests if merge has correct number of columns
+        
+        """
+        assert (len(global_check_task_gpu_df.columns) == 11)
+    
+    def test_check_keys(self, global_check_task_gpu_df):             
+         """ Tests if keys timestamp and hostname are present
+         
+         """
+         cols = ['timestamp', 'hostname']
+         assert (global_check_task_gpu_df.columns.isin(cols).any())
+         
+    def test_nulls(self, global_check_task_gpu_df):
+        """ Tests if merge didn't result in any nulls
+        
+        """
+        assert not (global_check_task_gpu_df.isnull().values.any())
+        
