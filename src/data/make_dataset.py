@@ -138,15 +138,15 @@ def clean_check_task(check_task_df):
     return(check_task_df)
 
 def merge_check_task_gpu(gpu_df, check_task_df):
-    """merge (left join) gpu with first merged df through host and timestamp
+    """merge (left join) gpu df with first merged df through host and timestamp
     
     Parameters
     ----------
-    gpu_df
-        gpu dataframe to merge
-        
     check_task_df
         application checkpoints and tasks megred dataframe to merge with gpu df
+    
+    gpu_df
+        gpu dataframe to merge
 
     Returns
     -------
@@ -172,15 +172,19 @@ def merge_check_task_gpu(gpu_df, check_task_df):
     
     # Merge with timestamps only to fix timestamps to nearest in other df ...
     
-    gpu_df = pd.merge_asof(gpu_df, timestamp_df,
+    gpu_df = pd.merge_asof(timestamp_df, gpu_df,
                            left_index = True, right_index = True,
-                           tolerance = pd.Timedelta('0ms'),
+                           tolerance = pd.Timedelta('4ms'),
                            direction = 'nearest')
+    
+    # drop any NAs
+    
+    gpu_df.dropna(inplace = True)
     
     # Then merge gpu_df with fixed timestamps with check_task_df
     
     check_task_gpu_df = pd.merge(gpu_df, check_task_df,
-                                 on = ['hostname', 'timestamp'])
+                                 on = ['hostname', 'timestamp'])    
 
     return(check_task_gpu_df)
 
