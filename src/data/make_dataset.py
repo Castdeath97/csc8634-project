@@ -14,6 +14,7 @@ import logging
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
+import sqlite3
 
 BASE_RAW_DATA_DIR = 'data/raw'
 """
@@ -154,39 +155,56 @@ def merge_check_task_gpu(gpu_df, check_task_df):
         Cleaned GPU dataframe
     """
     
-    # set keys as indexes for join 
+    # Record start and stop times for events and drop old timestamps
 
-    gpu_df.set_index('timestamp', inplace=True)
-    check_task_df.set_index('timestamp', inplace=True)
-        
-    # sort by index
+    check_task_df_start = check_task_df[
+    check_task_df['eventType'] == 'START']
+    check_task_df_stop = check_task_df[
+    check_task_df['eventType'] == 'STOP']
+
+    check_task_df_start.rename(
+            index=str, columns={"timestamp": "start_time"}, inplace = True)
+    check_task_df_stop.rename(
+            index=str, columns={"timestamp": "stop_time"}, inplace = True)
+
+    check_task_df_stop.drop('eventType', axis = 1, inplace = True)
+    check_task_df_start.drop('eventType', axis = 1, inplace = True)
    
-    gpu_df.sort_index(inplace=True)
-    check_task_df.sort_index(inplace=True)
+    # Make each field record start and stop combined
+   
+    check_task_df = pd.merge( check_task_df_start, check_task_df_stop, 
+                on=['hostname', 'eventName', 'x', 'y', 'level'])
+   
+    # Remove any timestamps that occur out of the gpu dataset
+   
+    check_task_df = check_task_df[
+            (check_task_df['start_time'] >= gpu_df['timestamp'][0]) &
+            (check_task_df['stop_time']
+            <= gpu_df['timestamp'][len(gpu_df)-1])]
+   
+    # Use sqllite to only combine with gpu if timestamp is between times
 
-    # Make timestamp df for first merge 
-    
-    timestamp_df = check_task_df.copy()
-    timestamp_df.drop(['hostname', 'eventName', 
-                       'eventType', 'x', 'y', 'level'], axis=1, inplace= True)
-    
-    # Merge with timestamps only to fix timestamps to nearest in other df ...
-    
-    gpu_df = pd.merge_asof(timestamp_df, gpu_df,
-                           left_index = True, right_index = True,
-                           tolerance = pd.Timedelta('4ms'),
-                           direction = 'nearest')
-    
-    # drop any NAs
-    
-    gpu_df.dropna(inplace = True)
-    
-    # Then merge gpu_df with fixed timestamps with check_task_df
-    
-    check_task_gpu_df = pd.merge(gpu_df, check_task_df,
-                                 on = ['hostname', 'timestamp'])    
+    # connection to sql
+    conn = sqlite3.connect(':memory:')
 
-    return(check_task_gpu_df)
+    # move dataframes to sql
+    check_task_df.to_sql('CheckTask', conn, index=False)
+    gpu_df.to_sql('Gpu', conn, index=False)
+
+    # SQL query
+    query = '''
+    SELECT *
+    FROM Gpu
+    LEFT JOIN CheckTask ON gpu.hostname = CheckTask.hostname
+    WHERE gpu.timestamp >= CheckTask.start_time AND gpu.timestamp <= CheckTask.stop_time
+    '''
+    # get new df
+    merged_df = pd.read_sql_query(query, conn)
+    
+    # drop now uneeded start and stop times
+    merged_df.drop(['start_time', 'stop_time'], axis = 1, inplace = True)
+
+    return(merged_df)
 
 def main():
     """ Runs data processing scripts to turn raw data from (../raw) into

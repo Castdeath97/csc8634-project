@@ -175,7 +175,7 @@ class TestCheckTaskGPUMerge(object):
         """ Tests if merge has correct number of columns
         
         """
-        assert (len(global_check_task_gpu_df.columns) == 11)
+        assert (len(global_check_task_gpu_df.columns) == 12)
     
     def test_check_keys(self, global_check_task_gpu_df):             
          """ Tests if keys timestamp and hostname are present
