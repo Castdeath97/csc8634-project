@@ -3,7 +3,7 @@ csc8634_project
 
 Performance evaluation of Terapixel rendering in Cloud (Super)computing
 
-Usage and prerequisites
+Usage and Prerequisites
 -----------------------
 * Needs a linux OS installation with python3 with pip
 * install texlive-xetex with OS package manager (apt-get) 
