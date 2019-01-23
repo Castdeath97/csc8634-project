@@ -196,13 +196,15 @@ def merge_check_task_gpu(gpu_df, check_task_df):
     SELECT *
     FROM Gpu
     LEFT JOIN CheckTask ON gpu.hostname = CheckTask.hostname
-    WHERE gpu.timestamp >= CheckTask.start_time AND gpu.timestamp <= CheckTask.stop_time
+    WHERE gpu.timestamp >= CheckTask.start_time 
+        AND gpu.timestamp <= CheckTask.stop_time
     '''
     # get new df
     merged_df = pd.read_sql_query(query, conn)
     
-    # drop now uneeded start and stop times
-    merged_df.drop(['start_time', 'stop_time'], axis = 1, inplace = True)
+    # drop now uneeded start and stop times and duplicate row
+    merged_df.drop(['start_time', 'stop_time',
+                    'hostname'], axis = 1, inplace = True)
 
     return(merged_df)
 
