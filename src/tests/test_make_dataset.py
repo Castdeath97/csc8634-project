@@ -129,15 +129,26 @@ def global_check_task_gpu_df():
     return(FINAL_MERGED_DF.copy())    
             
 @pytest.fixture
-def global_merge_col_count():
-    """Fixture used return expected columns count after merge
+def global_check_task_merge_col_count():
+    """Fixture used return expected columns count after check task merge
     
     Returns
     -------
     int
-        column count (expected)
+        column count (expected 9)
     """
-    return(10)
+    return(9)
+
+@pytest.fixture
+def global_final_merge_col_count():
+    """Fixture used return expected columns count after final merge
+    
+    Returns
+    -------
+    int
+        column count (expected 10)
+    """
+    return(11)
 
 @pytest.mark.usefixtures('global_gpu')
 class TestGPUCleaning(object):
@@ -160,17 +171,20 @@ class TestGPUCleaning(object):
                (lambda x: isinstance(x, datetime)).all())
         
 
-@pytest.mark.usefixtures('global_check_task_df')
+@pytest.mark.usefixtures('global_check_task_df',
+                         'global_check_task_merge_col_count')
 class TestCheckTaskMerge(object):
     """ Tests task and application checkpoints merge
 
     """
     
-    def test_check_col_count(self, global_check_task_df):
+    def test_check_col_count(self, global_check_task_df, 
+                             global_check_task_merge_col_count):
         """ Tests if merge has correct number of columns
 
         """
-        assert (len(global_check_task_df.columns) == 9)
+        assert (len(global_check_task_df.columns) == 
+                global_check_task_merge_col_count)
     
     def test_check_keys(self, global_check_task_df):             
          """ Tests if keys task and job id are present
@@ -200,18 +214,20 @@ class TestCheckTaskCleaning(object):
         assert(md.clean_check_task(global_check_task_df).timestamp.apply
                (lambda x: isinstance(x, datetime)).all())
         
-@pytest.mark.usefixtures('global_check_task_gpu_df', 'global_merge_col_count')
+@pytest.mark.usefixtures('global_check_task_gpu_df',
+                         'global_final_merge_col_count')
 class TestCheckTaskGPUMerge(object):
     """ Tests task, application checkpoints and gpu final merge
     
     """
     
     def test_check_col_count(self, global_check_task_gpu_df,
-                             global_merge_col_count):
+                             global_final_merge_col_count):
         """ Tests if merge has correct number of columns
         
         """
-        assert (len(global_check_task_gpu_df.columns) == global_merge_col_count)
+        assert (len(global_check_task_gpu_df.columns) ==
+                global_final_merge_col_count)
     
     def test_check_keys(self, global_check_task_gpu_df):             
          """ Tests if keys timestamp and hostname are present

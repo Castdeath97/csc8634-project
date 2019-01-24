@@ -202,9 +202,20 @@ def merge_check_task_gpu(gpu_df, check_task_df):
     # get new df
     merged_df = pd.read_sql_query(query, conn)
     
-    # drop now uneeded start and stop times and duplicate row
-    merged_df.drop(['start_time', 'stop_time',
-                    'hostname'], axis = 1, inplace = True)
+    # drop duplicate hostname row (index 8)
+    merged_df = merged_df.loc[:,~merged_df.columns.duplicated()]
+    
+    # group for averages (average stats for every task)
+    
+    functions = {
+        'powerDrawWatt': 'mean', 'gpuTempC': 'mean',
+        'gpuUtilPerc': 'mean', 'gpuMemUtilPerc': 'mean',
+        'start_time': 'first', 'stop_time': 'first'}
+    
+    merged_df = merged_df.groupby(
+        ['hostname', 'eventName', 'x', 'y', 'level'],
+        as_index=False, sort=False
+    ).agg(functions)
 
     return(merged_df)
 
