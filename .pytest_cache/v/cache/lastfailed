@@ -1,9 +1,4 @@
 {
-  "src/tests/test_make_dataset.py::TestCheckTaskCleaning": true,
-  "src/tests/test_make_dataset.py::TestCheckTaskGPUMerge": true,
-  "src/tests/test_make_dataset.py::TestCheckTaskGPUMerge::test_check_col_count": true,
-  "src/tests/test_make_dataset.py::TestCheckTaskMerge": true,
-  "src/tests/test_make_dataset.py::TestGPUCleaning": true,
   "tests/test_DataPreparation.py::TestCheckTaskCleaning": true,
   "tests/test_DataPreparation.py::TestCheckTaskCleaning::()::test_jobId_drop": true,
   "tests/test_DataPreparation.py::TestCheckTaskGPUMerge": true,

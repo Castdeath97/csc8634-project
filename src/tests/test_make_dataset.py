@@ -40,38 +40,6 @@ TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 str: string used to format timestamp for ms sinc epoch conversion
 """
 
-GPU_DF = pd.read_csv(GPU_CSV_FILE)
-"""
-pandas.core.frame.DataFrame: GPU stats dataframe
-"""
-
-CHECK_DF = pd.read_csv(CHECK_CSV_FILE)
-"""
-pandas.core.frame.DataFrame: Event checkpoints dataframe
-"""
-
-TASK_DF = pd.read_csv(TASK_CSV_FILE)
-"""
-pandas.core.frame.DataFrame: Tasks dataframe
-"""
-
-CHECK_TASK_DF = md.merge_check_task(pd.read_csv(CHECK_CSV_FILE),
-                               pd.read_csv(TASK_CSV_FILE))
-"""
-pandas.core.frame.DataFrame: Checkpoints and Tasks merged dataframe
-"""
-
-FINAL_MERGED_DF = md.merge_check_task_gpu(
-            md.clean_gpu(pd.read_csv(GPU_CSV_FILE)),
-            md.clean_check_task(md.merge_check_task(
-                    pd.read_csv(CHECK_CSV_FILE),
-                    pd.read_csv(TASK_CSV_FILE)
-                               ))
-                    )
-"""
-pandas.core.frame.DataFrame: Final (GPU, Checkpoints and Tasks) merged dataframe
-"""
-
 @pytest.fixture
 def global_gpu():
     """Fixture used to pass GPU dataset
@@ -81,6 +49,8 @@ def global_gpu():
     pandas.core.frame.DataFrame
         GPU dataframe
     """
+    
+    GPU_DF = pd.read_csv(GPU_CSV_FILE)
     return(GPU_DF.copy())
 
    
@@ -93,6 +63,8 @@ def global_checkpoints():
     pandas.core.frame.DataFrame
         application checkpoints dataframe
     """
+
+    CHECK_DF = pd.read_csv(CHECK_CSV_FILE)
     return(CHECK_DF.copy())
   
 @pytest.fixture
@@ -104,6 +76,7 @@ def global_tasks():
     pandas.core.frame.DataFrame
         tasks dataframe
     """
+    TASK_DF = pd.read_csv(TASK_CSV_FILE)
     return(TASK_DF.copy())
     
 @pytest.fixture
@@ -115,6 +88,9 @@ def global_check_task_df():
     pandas.core.frame.DataFrame
         application and tasks merged dataframe
     """
+
+    CHECK_TASK_DF = md.merge_check_task(pd.read_csv(CHECK_CSV_FILE),
+                                        pd.read_csv(TASK_CSV_FILE))
     return(CHECK_TASK_DF.copy())
     
 @pytest.fixture
@@ -126,6 +102,13 @@ def global_check_task_gpu_df():
     pandas.core.frame.DataFrame
         application, tasks and gpu final merged dataframe
     """
+    FINAL_MERGED_DF = md.merge_check_task_gpu(
+                md.clean_gpu(pd.read_csv(GPU_CSV_FILE)),
+                md.clean_check_task(md.merge_check_task(
+                        pd.read_csv(CHECK_CSV_FILE),
+                        pd.read_csv(TASK_CSV_FILE)
+                                   ))
+                        )
     return(FINAL_MERGED_DF.copy())    
             
 @pytest.fixture
@@ -146,9 +129,9 @@ def global_final_merge_col_count():
     Returns
     -------
     int
-        column count (expected 10)
+        column count (expected 12)
     """
-    return(11)
+    return(12)
 
 @pytest.mark.usefixtures('global_gpu')
 class TestGPUCleaning(object):
