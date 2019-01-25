@@ -210,7 +210,8 @@ def merge_check_task_gpu(gpu_df, check_task_df):
     functions = {
         'powerDrawWatt': 'mean', 'gpuTempC': 'mean',
         'gpuUtilPerc': 'mean', 'gpuMemUtilPerc': 'mean',
-        'start_time': 'first', 'stop_time': 'first'}
+        'start_time': 'first', 'stop_time': 'first', 
+        'gpuUUID' : 'first'}
     
     merged_df = merged_df.groupby(
         ['hostname', 'eventName', 'x', 'y', 'level'],
