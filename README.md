@@ -1,4 +1,4 @@
-csc8634_project
+terapixel-evaluation
 ==============================
 
 Performance evaluation of Terapixel rendering in Cloud (Super)computing
